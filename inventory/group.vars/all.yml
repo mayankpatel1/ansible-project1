@@ -1,0 +1,17 @@
+---
+
+ansible_ssh_private_key: | 
+  -----BEGIN RSA PRIVATE KEY-----
+  SHA256:x6+eLwX4Phs1AzuYOrD0fEXwOB+nAyFwIYPmt3zCxLs
+  -----END RSA PRIVATE KEY-----
+
+
+security_packages:
+  - name: '*'
+    state: latest
+    when:
+      - ansible_os_family == 'Debian'
+      
+    tags: security
+
+

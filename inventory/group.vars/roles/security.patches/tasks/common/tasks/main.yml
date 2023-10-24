@@ -1,0 +1,48 @@
+---
+- name: Security Patching Playbook
+  hosts: your_target_group
+  become: yes
+  gather_facts: yes
+  tasks:
+    - name: Ensure the system is up to date
+      apt:
+        name: "*"
+        state: latest
+      when: ansible_os_family == 'Debian'
+      tags:
+        - security
+
+    - name: Ensure the system is up to date
+      yum:
+        name: "*"
+        state: latest
+      when: ansible_os_family == 'RedHat'
+      tags:
+        - security
+
+    # Add additional tasks for other package managers (e.g., zypper for SUSE)
+
+  handlers:
+    - name: Reboot if needed
+      reboot:
+      async: 1
+      poll: 0
+      when: "'OK' in reboot_result.stdout"
+      tags:
+        - security
+
+- name: Re-run the playbook after a reboot
+  hosts: your_target_group
+  gather_facts: yes
+  tasks:
+    - name: Wait for SSH to become available
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        timeout: 300
+      delegate_to: localhost
+      tags:
+        - security
+
+    # Add additional tasks that need to run after reboot
+

@@ -1,0 +1,41 @@
+---
+- name: Apply Security Patches to Linux Servers
+  hosts: all
+  become: yes
+  gather_facts: yes
+  tasks:
+    - include_vars: /downloads/aws-haa-all-part-2/ansible-project/inventory-group.vars/a;;.yml
+
+    - name: Ensure the system is up to date
+      apt:
+        name: "{{ item.name }}"
+        state: "{{ item.state }}"
+      when: ansible_os_family == 'Debian'
+      with_items: "{{ security_packages }}"
+      tags:
+        - security
+
+    
+  handlers:
+    - name: Reboot if needed
+      reboot:
+      async: 1
+      poll: 0
+      when: "'OK' in reboot_result.stdout"
+      tags:
+        - security
+
+- name: Re-run the playbook after a reboot
+  hosts: your_target_group  
+  gather_facts: yes
+  tasks:
+    - name: Wait for SSH to become available
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        timeout: 300
+      delegate_to: localhost
+      tags:
+        - security
+
+    
